@@ -1,8 +1,11 @@
+import base64
 import random
 import string
 import threading
 
-from flask import Flask, jsonify, request, abort
+from flask import Flask, Response, jsonify, request, abort
+
+from photos import PHOTOS
 
 app = Flask(__name__)
 ROOMS = {}
@@ -25,6 +28,14 @@ def get_room(code):
 @app.get("/r/<code>")
 def page(code=None):
     return PAGE
+
+
+@app.get("/photo/<int:i>.jpg")
+def photo(i):
+    if not 1 <= i <= len(PHOTOS):
+        abort(404)
+    return Response(base64.b64decode(PHOTOS[i - 1]), mimetype="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.post("/api/create")
@@ -194,7 +205,7 @@ document.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(locked)retur
 const c=r.d.correct;document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.j===c)x.classList.add('ok')});if(j!==c)b.classList.add('bad');
 $('#nx').classList.remove('hide');$('#nx').onclick=()=>{locked=false;poll()}})}
 function results(s){const r=s.results,p=s.partner;
-app.innerHTML=`<h1 class=center style="margin-top:6vh">Результаты</h1><div class=duo><div class="card center"><p>Ты</p><div class=score>${r.me}/${N}</div></div><div class="card center"><p>${esc(p.name)}</p><div class=score>${r.partner}/${N}</div></div></div><div class="card center love"><h2>Но неважно, кто сколько баллов набрал 💞</h2><p>Главное — что мы любим друг друга.</p><p>Этот сайт и квиз я сделал для тебя, потому что ты — самый дорогой человек в моей жизни. Я очень люблю тебя и очень по тебе скучаю.</p></div><div class=gallery>`+[1,2,3,4].map(i=>`<figure class=pol style="--r:${[-3,2.5,2,-2.5][i-1]}deg"><img src="/static/${i}.jpg" alt="" loading=lazy></figure>`).join('')+`</div>`}
+app.innerHTML=`<h1 class=center style="margin-top:6vh">Результаты</h1><div class=duo><div class="card center"><p>Ты</p><div class=score>${r.me}/${N}</div></div><div class="card center"><p>${esc(p.name)}</p><div class=score>${r.partner}/${N}</div></div></div><div class="card center love"><h2>Но неважно, кто сколько баллов набрал 💞</h2><p>Главное — что мы любим друг друга.</p><p>Этот сайт и квиз я сделал для тебя, потому что ты — самый дорогой человек в моей жизни. Я очень люблю тебя и очень по тебе скучаю.</p></div><div class=gallery>`+[1,2,3,4].map(i=>`<figure class=pol style="--r:${[-3,2.5,2,-2.5][i-1]}deg"><img src="/photo/${i}.jpg" width=${[900,675,900,675][i-1]} height=${[675,900,675,900][i-1]} alt=""></figure>`).join('')+`</div>`}
 function render(s){const me=s.me,p=s.partner;let k,f;
 if(!me.ready){k='setup';f=setup}else if(s.results){k='res';f=()=>results(s)}
 else if(s.question){k='q'+s.question.i;f=()=>quiz(s.question)}
