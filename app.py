@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request, abort
 app = Flask(__name__)
 ROOMS = {}
 LOCK = threading.Lock()
-N = 5
+N = 10
 
 
 def other_of(room, tok):
@@ -67,7 +67,7 @@ def set_questions(code):
                 return jsonify(error="Заполни все вопросы и все варианты ответа"), 400
             qs.append(dict(q=q, options=opts, correct=c))
         if len(qs) != N:
-            return jsonify(error="Нужно ровно 5 вопросов"), 400
+            return jsonify(error="Нужно ровно 10 вопросов"), 400
         me["questions"] = qs
     return jsonify(ok=True)
 
@@ -128,17 +128,17 @@ PAGE = r"""<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Love Quiz 💗</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Nunito:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
 <style>
 :root{--rose:#e8456b;--deep:#b02a4d;--bg1:#fff1f4;--bg2:#ffd3de;--ink:#4a1f2c}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));overflow-x:hidden}
+body{margin:0;min-height:100vh;font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));overflow-x:hidden}
 #hearts{position:fixed;inset:0;pointer-events:none;z-index:0}
 #hearts span{position:absolute;bottom:-40px;opacity:0;color:var(--rose);animation:up linear infinite}
 @keyframes up{10%{opacity:.35}100%{transform:translateY(-110vh) rotate(25deg);opacity:0}}
 main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:28px 18px 60px}
-h1,h2{font-family:'Playfair Display',Georgia,serif;font-weight:600;line-height:1.2}
-h1{font-size:2.6rem;text-align:center;margin:12vh 0 8px;color:var(--deep)}
+h1,.score{font-family:Pacifico,'Comic Sans MS',cursive;font-weight:400;line-height:1.3}h2{font-family:Comfortaa,Nunito,sans-serif;font-weight:700;line-height:1.3}
+h1{font-size:2.2rem;text-align:center;margin:12vh 0 8px;color:var(--deep)}
 h2{font-size:1.5rem;margin:18px 0 10px}
 p,.sub{opacity:.8;line-height:1.5}
 .center{text-align:center}
@@ -156,13 +156,13 @@ input:focus{outline:none;border-color:var(--rose)}
 .bar{height:8px;background:rgba(255,255,255,.7);border-radius:9px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#f0648a,var(--deep));transition:width .4s}
 .err{color:#c0223f;text-align:center}
-.score{font-family:'Playfair Display',serif;font-size:3rem;color:var(--deep)}
+.score{font-size:3rem;color:var(--deep)}
 .link{word-break:break-all;font-size:.9rem;background:#fff;padding:10px;border-radius:12px}
 .pulse{display:inline-block;animation:p 1.2s infinite}@keyframes p{50%{transform:scale(1.25)}}
 </style></head><body>
 <div id="hearts"></div><main id="app"></main>
 <script>
-const $=s=>document.querySelector(s),app=$('#app'),N=5;
+const $=s=>document.querySelector(s),app=$('#app'),N=10;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const code=location.pathname.startsWith('/r/')?location.pathname.split('/')[2]:null;
 const tok=localStorage.tok||(localStorage.tok=Math.random().toString(36).slice(2)+Date.now().toString(36));
@@ -175,7 +175,7 @@ function home(){app.innerHTML=`<h1>Love Quiz</h1><p class="center">Свидан�
 $('#go').onclick=async()=>{const r=await api('create',{});location.href='/r/'+r.d.code}}
 function askName(){app.innerHTML=`<h2 class=center style="margin-top:14vh">Как тебя зовут?</h2><input id=nm maxlength=20 placeholder="Твоё имя"><button id=ok>Войти 💗</button>`;
 $('#ok').onclick=()=>{const v=$('#nm').value.trim();if(v){localStorage.name=v;boot()}}}
-function setup(){let h=`<h2>Придумай 5 вопросов про себя ✍️</h2><p class=sub>Кружком отметь правильный вариант.</p>`;
+function setup(){let h=`<h2>Придумай ${N} вопросов про себя ✍️</h2><p class=sub>Кружком отметь правильный вариант.</p>`;
 for(let i=0;i<N;i++)h+=`<div class=card><b>Вопрос ${i+1}</b><input class=q maxlength=200 placeholder="Например: Моё любимое блюдо?">`+[0,1,2,3].map(j=>`<label class=row><input type=radio name=r${i} value=${j} ${j?'':'checked'}><input class=o maxlength=80 placeholder="Вариант ${j+1}"></label>`).join('')+`</div>`;
 app.innerHTML=h+`<button id=sv>Готово 💗</button><p id=er class=err></p>`;
 $('#sv').onclick=async()=>{const questions=[...document.querySelectorAll('.card')].map(c=>({q:c.querySelector('.q').value,options:[...c.querySelectorAll('.o')].map(x=>x.value),correct:+c.querySelector('input[type=radio]:checked').value}));
