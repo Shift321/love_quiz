@@ -159,6 +159,11 @@ input:focus{outline:none;border-color:var(--rose)}
 .score{font-size:3rem;color:var(--deep)}
 .link{word-break:break-all;font-size:.9rem;background:#fff;padding:10px;border-radius:12px}
 .pulse{display:inline-block;animation:p 1.2s infinite}@keyframes p{50%{transform:scale(1.25)}}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}.duo .score{font-size:2.3rem}
+.love h2{margin-top:4px}.love p{font-size:1.02rem}
+.gallery{column-count:2;column-gap:14px;margin-top:22px}
+.pol{break-inside:avoid;margin:0 0 14px;padding:8px 8px 22px;background:#fff;border-radius:6px;box-shadow:0 8px 22px rgba(176,42,77,.22);transform:rotate(var(--r))}
+.pol img{display:block;width:100%;height:auto;border-radius:3px}
 </style></head><body>
 <div id="hearts"></div><main id="app"></main>
 <script>
@@ -188,8 +193,8 @@ function quiz(q){app.innerHTML=`<div class=bar><i style="width:${q.i*100/N}%"></
 document.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(locked)return;locked=true;const j=+b.dataset.j;const r=await api(code+'/answer',{q:q.i,choice:j});if(!r.ok){locked=false;return}
 const c=r.d.correct;document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.j===c)x.classList.add('ok')});if(j!==c)b.classList.add('bad');
 $('#nx').classList.remove('hide');$('#nx').onclick=()=>{locked=false;poll()}})}
-function results(s){const r=s.results,p=s.partner;const w=r.me==r.partner?'Ничья — вы созданы друг для друга 💞':(r.me>r.partner?'Ты знаешь партнёра лучше 🏆':esc(p.name)+' знает тебя лучше 🏆');
-app.innerHTML=`<h1 style="margin-top:8vh">Результаты</h1><div class="card center"><p>Ты</p><div class=score>${r.me}/${N}</div></div><div class="card center"><p>${esc(p.name)}</p><div class=score>${r.partner}/${N}</div></div><h2 class=center>${w}</h2>`}
+function results(s){const r=s.results,p=s.partner;
+app.innerHTML=`<h1 class=center style="margin-top:6vh">Результаты</h1><div class=duo><div class="card center"><p>Ты</p><div class=score>${r.me}/${N}</div></div><div class="card center"><p>${esc(p.name)}</p><div class=score>${r.partner}/${N}</div></div></div><div class="card center love"><h2>Но неважно, кто сколько баллов набрал 💞</h2><p>Главное — что мы любим друг друга.</p><p>Этот сайт и квиз я сделал для тебя, потому что ты — самый дорогой человек в моей жизни. Я очень люблю тебя и очень по тебе скучаю.</p></div><div class=gallery>`+[1,2,3,4].map(i=>`<figure class=pol style="--r:${[-3,2.5,2,-2.5][i-1]}deg"><img src="/static/${i}.jpg" alt="" loading=lazy></figure>`).join('')+`</div>`}
 function render(s){const me=s.me,p=s.partner;let k,f;
 if(!me.ready){k='setup';f=setup}else if(s.results){k='res';f=()=>results(s)}
 else if(s.question){k='q'+s.question.i;f=()=>quiz(s.question)}
